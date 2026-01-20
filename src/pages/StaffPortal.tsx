@@ -79,10 +79,25 @@ const StaffPortal = () => {
     try {
       const today = new Date().toISOString().split('T')[0];
       
+      // Get staff profile ID from user_id (reuse selectedStaff.id if it's the profile ID, otherwise query)
+      let staffProfileId = selectedStaff.id;
+      if (!staffProfileId || selectedStaff.user_id) {
+        const { data: staffProfile } = await supabase
+          .from('staff_profiles')
+          .select('id')
+          .eq('user_id', selectedStaff.user_id)
+          .single();
+        
+        if (!staffProfile) {
+          throw new Error('Staff profile not found');
+        }
+        staffProfileId = staffProfile.id;
+      }
+
       const { data: shift } = await supabase
         .from('staff_attendance')
         .select('*')
-        .eq('staff_id', selectedStaff.user_id)
+        .eq('staff_id', staffProfileId)
         .eq('date', today)
         .is('clock_out', null)
         .maybeSingle();
@@ -93,14 +108,14 @@ const StaffPortal = () => {
       const { data: attendance } = await supabase
         .from('staff_attendance')
         .select('*')
-        .eq('staff_id', selectedStaff.user_id)
+        .eq('staff_id', staffProfileId)
         .order('date', { ascending: false })
         .order('clock_in', { ascending: false })
         .limit(30);
 
       setAllAttendance(attendance || []);
 
-      // Fetch break violations
+      // Fetch break violations (using user_id as staff_id is TEXT in violations table)
       const { data: violations } = await supabase
         .from('staff_break_violations')
         .select('*')
@@ -126,7 +141,7 @@ const StaffPortal = () => {
       const { data: leaves } = await supabase
         .from('staff_leave_requests')
         .select('*')
-        .eq('staff_id', selectedStaff.user_id)
+        .eq('staff_id', staffProfileId)
         .order('created_at', { ascending: false })
         .limit(10);
 
@@ -152,7 +167,7 @@ const StaffPortal = () => {
       const { data: payrollData } = await supabase
         .from('staff_payslip_view')
         .select('*')
-        .eq('staff_id', selectedStaff.user_id)
+        .eq('staff_id', staffProfileId)
         .order('year', { ascending: false })
         .order('month', { ascending: false })
         .limit(6);
@@ -173,10 +188,25 @@ const StaffPortal = () => {
 
   const handleClockIn = async () => {
     try {
+      // Get staff profile ID
+      let staffProfileId = selectedStaff.id;
+      if (!staffProfileId && selectedStaff.user_id) {
+        const { data: staffProfile } = await supabase
+          .from('staff_profiles')
+          .select('id')
+          .eq('user_id', selectedStaff.user_id)
+          .single();
+        staffProfileId = staffProfile?.id;
+      }
+      
+      if (!staffProfileId) {
+        throw new Error('Staff profile not found');
+      }
+
       const { error } = await supabase
         .from('staff_attendance')
         .insert({
-          staff_id: selectedStaff.user_id,
+          staff_id: staffProfileId,
           date: new Date().toISOString().split('T')[0],
           clock_in: new Date().toISOString(),
           status: 'active'
@@ -271,10 +301,25 @@ const StaffPortal = () => {
         .update({ break_start_time: now })
         .eq('id', currentShift.id);
 
+      // Get staff profile ID
+      let staffProfileId = selectedStaff.id;
+      if (!staffProfileId && selectedStaff.user_id) {
+        const { data: staffProfile } = await supabase
+          .from('staff_profiles')
+          .select('id')
+          .eq('user_id', selectedStaff.user_id)
+          .single();
+        staffProfileId = staffProfile?.id;
+      }
+      
+      if (!staffProfileId) {
+        throw new Error('Staff profile not found');
+      }
+
       await supabase
         .from('active_breaks')
         .insert({
-          staff_id: selectedStaff.user_id,
+          staff_id: staffProfileId,
           attendance_id: currentShift.id,
           break_start: now,
           is_active: true
