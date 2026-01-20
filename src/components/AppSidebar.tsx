@@ -1,7 +1,7 @@
 // src/components/AppSidebar.tsx
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, ShoppingCart, User, BarChart2, Settings, Package, Clock, Users, Menu, Shield, PowerOff, BookOpen, Calendar, Users2, UserCircle, CreditCard } from 'lucide-react';
+import { Home, ShoppingCart, User, BarChart2, Settings, Package, Clock, Users, Menu, Shield, PowerOff, BookOpen, Calendar, Users2, UserCircle, CreditCard, Plus } from 'lucide-react';
 import { 
   Sidebar, 
   SidebarContent, 
@@ -43,6 +43,7 @@ const AppSidebar: React.FC = () => {
     { icon: Package, label: 'Products', path: '/products' },
     { icon: Users, label: 'Customers', path: '/customers' },
     { icon: BarChart2, label: 'Reports', path: '/reports' },
+    { icon: Plus, label: 'New Booking', path: '/booking' },
     { icon: Calendar, label: 'Bookings', path: '/booking-management' },
   ];
 
