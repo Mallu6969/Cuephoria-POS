@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -240,6 +241,7 @@ const calculateRevenue = (bookings: Booking[]) => {
 };
 
 export default function BookingManagement() {
+  const navigate = useNavigate();
   const { hasBookingAccess, isLoading: subscriptionLoading } = useSubscription();
   const [showUpgradeDialog, setShowUpgradeDialog] = useState(false);
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -1848,7 +1850,7 @@ export default function BookingManagement() {
           </Button>
           <Button
             className="flex items-center gap-2"
-            onClick={() => window.open('https://app.nerfturf.in/public/booking', '_blank', 'noopener,noreferrer')}
+            onClick={() => navigate('/booking')}
           >
             <Plus className="h-4 w-4" />
             New Booking
