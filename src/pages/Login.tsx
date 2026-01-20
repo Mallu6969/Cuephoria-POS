@@ -327,7 +327,9 @@ const Login = () => {
           description: `${isAdminLogin ? 'Admin' : 'Staff'} logged in successfully!`,
         });
         
-        const redirectTo = locationState?.from || '/dashboard';
+        // Redirect staff users to staff portal, admin users to dashboard
+        const defaultRedirect = isAdminLogin ? '/dashboard' : '/staff-portal';
+        const redirectTo = locationState?.from || defaultRedirect;
         navigate(redirectTo);
       } else {
         toast({
