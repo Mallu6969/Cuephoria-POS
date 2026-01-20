@@ -36,16 +36,20 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isLoading, setIsLoading] = useState(true);
 
   const checkSubscriptionValidity = (sub: Subscription | null): boolean => {
-    if (!sub || !sub.is_active || !sub.pages_enabled) {
-      return false;
-    }
+    // DISABLED: Always return true for replica site - no subscription restrictions
+    return true;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const endDate = new Date(sub.end_date);
-    endDate.setHours(0, 0, 0, 0);
-    
-    return endDate >= today;
+    // Original validation code (disabled):
+    // if (!sub || !sub.is_active || !sub.pages_enabled) {
+    //   return false;
+    // }
+    // 
+    // const today = new Date();
+    // today.setHours(0, 0, 0, 0);
+    // const endDate = new Date(sub.end_date);
+    // endDate.setHours(0, 0, 0, 0);
+    // 
+    // return endDate >= today;
   };
 
   const fetchSubscription = async () => {
@@ -194,8 +198,9 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const isSubscriptionValid = checkSubscriptionValidity(subscription);
   
-  const hasBookingAccess = subscription?.booking_access === true && isSubscriptionValid;
-  const hasStaffManagementAccess = subscription?.staff_management_access === true && isSubscriptionValid;
+  // DISABLED: Always allow access for replica site
+  const hasBookingAccess = true; // subscription?.booking_access === true && isSubscriptionValid;
+  const hasStaffManagementAccess = true; // subscription?.staff_management_access === true && isSubscriptionValid;
 
   return (
     <SubscriptionContext.Provider value={{
