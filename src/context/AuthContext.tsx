@@ -144,10 +144,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const checkExistingUser = async () => {
       try {
+        // Clear any old admin sessions when Supabase project changes
+        // This ensures we don't use cached sessions from old project
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
+        const isOldProject = supabaseUrl.includes('hxjomxplhbrxtqibgrxw');
+        
+        if (isOldProject) {
+          console.warn('⚠️ Still using old Supabase project! Please update environment variables.');
+        }
+        
         // Only check for existing stored session - no auto-login
         const storedAdmin = localStorage.getItem('cuephoriaAdmin');
         if (storedAdmin) {
-          setUser(JSON.parse(storedAdmin));
+          // Verify the stored admin is still valid by checking Supabase connection
+          try {
+            const { data: testData, error } = await supabase
+              .from('admin_users')
+              .select('id')
+              .limit(1);
+            
+            if (error) {
+              console.error('Supabase connection error, clearing cached admin:', error);
+              localStorage.removeItem('cuephoriaAdmin');
+              return;
+            }
+            
+            // If connection is successful, restore the admin session
+            setUser(JSON.parse(storedAdmin));
+          } catch (error) {
+            console.error('Error verifying Supabase connection:', error);
+            localStorage.removeItem('cuephoriaAdmin');
+          }
         }
       } catch (error) {
         console.error('Error checking existing user:', error);

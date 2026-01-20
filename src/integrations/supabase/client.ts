@@ -14,13 +14,59 @@ if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
   );
 }
 
+// Extract project reference from URL for storage key
+const PROJECT_REF = SUPABASE_URL.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1] || 'unknown';
+
+// Clear old Supabase sessions from previous projects on app load
+if (typeof window !== 'undefined') {
+  try {
+    // Clear all Supabase auth tokens from old projects
+    const oldProjectRef = 'hxjomxplhbrxtqibgrxw'; // Old project reference
+    const oldAuthKey = `sb-${oldProjectRef}-auth-token`;
+    const oldRefreshKey = `sb-${oldProjectRef}-auth-token.refresh`;
+    
+    // Remove old project's auth tokens
+    if (localStorage.getItem(oldAuthKey) || localStorage.getItem(oldRefreshKey)) {
+      console.log('🧹 Clearing old Supabase session tokens...');
+      localStorage.removeItem(oldAuthKey);
+      localStorage.removeItem(oldRefreshKey);
+    }
+    
+    // Clear any localStorage items that might be from old project
+    // Supabase stores sessions with keys like: sb-<project-ref>-auth-token
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && !key.includes(PROJECT_REF)) {
+        keysToRemove.push(key);
+      }
+    }
+    
+    if (keysToRemove.length > 0) {
+      console.log(`🧹 Clearing ${keysToRemove.length} old Supabase storage keys:`, keysToRemove);
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+    }
+    
+    // Log current Supabase configuration
+    console.log('✅ Supabase Client Initialized:', {
+      url: SUPABASE_URL,
+      projectRef: PROJECT_REF,
+      keyPrefix: SUPABASE_PUBLISHABLE_KEY.substring(0, 20) + '...'
+    });
+  } catch (error) {
+    console.error('Error clearing old Supabase sessions:', error);
+  }
+}
+
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     persistSession: true,
-    autoRefreshToken: true
+    autoRefreshToken: true,
+    storageKey: `sb-${PROJECT_REF}-auth-token`, // Use project-specific storage key
+    storage: typeof window !== 'undefined' ? window.localStorage : undefined
   },
   realtime: {
     params: {
