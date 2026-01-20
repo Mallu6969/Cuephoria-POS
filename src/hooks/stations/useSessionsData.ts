@@ -23,7 +23,7 @@ export const useSessionsData = () => {
       // ✅ OPTIMIZED: Added .limit(100) to fetch only recent sessions
       const { data, error } = await supabase
         .from('sessions')
-        .select('id, station_id, customer_id, start_time, end_time, duration, hourly_rate, original_rate, coupon_code, discount_amount')
+        .select('id, station_id, customer_id, start_time, end_time, duration, hourly_rate, original_rate, coupon_code, discount_amount, created_at')
         .order('created_at', { ascending: false })
         .limit(100); // Only fetch 100 most recent sessions
         
